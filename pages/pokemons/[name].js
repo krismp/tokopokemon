@@ -2,7 +2,7 @@ import Head from 'next/head'
 import fetch from "isomorphic-fetch";
 import Link from 'next/link';
 
-export default function Home({ pokemons }) {
+export default function Pokemon({ pokemon }) {
   return (
     <div className="container">
       <Head>
@@ -12,22 +12,24 @@ export default function Home({ pokemons }) {
 
       <main>
         <h1 className="title">
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
+          {pokemon.name}
         </h1>
+        
+        <p>Abilities</p>
 
         <div className="grid">
-          {pokemons.results.map(pokemon => {
-            return <Link href={`pokemons/${pokemon.name}`} key={pokemon.name}>
-              <a className="card">
-                <h3>{pokemon.name}</h3>
-              </a>
-            </Link>
-          })}
+          <ul>
+            {pokemon.abilities.map(ability => {
+              return <li className="card" key={ability.ability.name}>
+                {ability.ability.name}
+              </li>
+            })}
+          </ul>
         </div>
 
-        <p className="description">
-          Get started by editing <code>pages/index.js</code>
-        </p>
+        <Link href="/">
+            <a>Back to home</a>
+        </Link>
       </main>
 
       <footer>
@@ -190,13 +192,21 @@ export default function Home({ pokemons }) {
   )
 }
 
-export async function getStaticProps() {
+export async function getStaticPaths() {
   const res = await fetch("https://pokeapi.co/api/v2/pokemon?limit=100&offset=200");
   const pokemons = await res.json();
+  const paths = pokemons.results.map(pokemon  => `/pokemons/${pokemon.name}`);
+
+  return { paths, fallback: false }
+}
+
+export async function getStaticProps({ params }) {
+  const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${params.name}`);
+  const pokemon = await res.json();
 
   return {
     props: {
-      pokemons
+      pokemon
     }
   }
 }
